@@ -38,8 +38,9 @@ export class LevelBuilder {
     this.seed = [...meta.id].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
     this.rand = rng(this.seed);
     // стартовая площадка с глухой стеной слева
-    this.pts.push(-13, -11, -12.4, -10.6);
+    this.pts.push(-70, -12, -13.2, -12);
     this.segSurf.push('rock');
+    this.put(-12.4, -11, 'rock');
     this.put(-11.2, 0, 'rock');
     this.put(0, 0);
   }
@@ -255,8 +256,9 @@ export class LevelBuilder {
   finish(): Level {
     this.finishX = this.x + 2;
     this.flat(15);
-    this.put(this.x + 1.2, this.y - 10.6, 'rock');
-    this.put(this.x + 0.6, this.y - 0.4, 'rock');
+    this.put(this.x + 1.2, this.y - 11, 'rock');
+    this.put(this.x + 0.8, this.y - 1, 'rock');
+    this.put(this.x + 60, this.y, 'rock');
     this.endChain();
     const m = this.meta;
     return {

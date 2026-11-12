@@ -9,7 +9,7 @@ import type { Level } from './types';
 function meadow(): Level {
   const b = new LevelBuilder({
     id: 'alps-1', name: 'Альпийский луг', biome: 'alps', tier: 1, surface: 'grass',
-    blurb: 'Пологие холмы и первый трамплин. Привыкните к газу и балансу.', par: [27, 34, 48],
+    blurb: 'Пологие холмы и первый трамплин. Привыкните к газу и балансу.', par: [26, 32, 45],
   });
   b.flat(10).hill(12, 1.1).flat(5).hill(16, 2.0).star(-8, 3.4).flat(6)
     .to(16, -3).flat(6).bumps(3, 6, 0.55).flat(8).cp().flat(7)
@@ -23,7 +23,7 @@ function meadow(): Level {
 function rockTrail(): Level {
   const b = new LevelBuilder({
     id: 'alps-2', name: 'Каменная тропа', biome: 'alps', tier: 1, surface: 'grass',
-    blurb: 'Каменные россыпи, валуны и ступени. Держите переднее колесо лёгким.', par: [36, 46, 64],
+    blurb: 'Каменные россыпи, валуны и ступени. Держите переднее колесо лёгким.', par: [24, 30, 42],
   });
   b.flat(9).surface('rock').rough(16, 0.16, 1).flat(4).boulder(1, 1.6, 0.45).flat(7)
     .stairs(3, 3.2, 0.32).flat(4).surface('grass').to(12, -2.2).star(-6, 2.2).flat(6).cp().flat(6)
@@ -38,7 +38,7 @@ function rockTrail(): Level {
 function pines(): Level {
   const b = new LevelBuilder({
     id: 'forest-1', name: 'Сосновый бор', biome: 'forest', tier: 1, surface: 'dirt',
-    blurb: 'Брёвна поперёк тропы, вязкая грязь и первые качели.', par: [38, 48, 66],
+    blurb: 'Брёвна поперёк тропы, вязкая грязь и первые качели.', par: [31, 38, 54],
   });
   b.flat(10).log(1.2, 0.26).flat(6).log(1, 0.3).flat(3).log(0.6, 0.3).flat(7).bumps(4, 4.5, 0.45).flat(5)
     .to(12, 2).star(2, 2.6).flat(5).to(10, -2).flat(5).cp().flat(6)
@@ -53,7 +53,7 @@ function pines(): Level {
 function windfall(): Level {
   const b = new LevelBuilder({
     id: 'forest-2', name: 'Бурелом', biome: 'forest', tier: 2, surface: 'dirt',
-    blurb: 'Завалы из стволов, шаткие качели и дощатые настилы над оврагами.', par: [46, 58, 80],
+    blurb: 'Завалы из стволов, шаткие качели и дощатые настилы над оврагами.', par: [29, 36, 52],
   });
   b.flat(9).log(1, 0.36).flat(2.2).log(0.4, 0.36).log(1.15, 0.36).flat(9)
     .seesaw(8, 1.2).flat(6).bridge(5, 2.2, false).flat(6).cp().flat(6)
@@ -68,7 +68,7 @@ function windfall(): Level {
 function serpentine(): Level {
   const b = new LevelBuilder({
     id: 'alps-3', name: 'Серпантин', biome: 'alps', tier: 2, surface: 'grass',
-    blurb: 'Крутые подъёмы, уступы и затяжной прыжок с перевала.', par: [48, 60, 84],
+    blurb: 'Крутые подъёмы, уступы и затяжной прыжок с перевала.', par: [30, 38, 55],
   });
   b.flat(9).to(14, 5).flat(4).surface('rock').step(0.4).flat(3).step(0.45).flat(3).step(0.5).flat(5)
     .surface('grass').line(12, 6.5).star(-4, 4.4).crest(5, 0.9).flat(6).cp().flat(6)
@@ -84,7 +84,7 @@ function serpentine(): Level {
 function redCanyon(): Level {
   const b = new LevelBuilder({
     id: 'canyon-1', name: 'Красный каньон', biome: 'canyon', tier: 2, surface: 'rock',
-    blurb: 'Пропасти между останцами. Разгон — это всё.', par: [40, 50, 70],
+    blurb: 'Пропасти между останцами. Разгон — это всё.', par: [28, 35, 50],
   });
   b.flat(12).ramp(7, 1.4).gap(5.5, 0).star(-2.7, 2.9).flat(8).surface('sand').to(10, -1).flat(8).to(8, 1).surface('rock')
     .flat(6).ramp(8, 1.9).gap(8, -0.8).flat(10).cp().flat(6)
@@ -98,7 +98,7 @@ function redCanyon(): Level {
 function ropeBridge(): Level {
   const b = new LevelBuilder({
     id: 'canyon-2', name: 'Старый рудник', biome: 'canyon', tier: 2, surface: 'rock',
-    blurb: 'Гнилые мостки рушатся под колёсами, а через провалы ходят вагонетки.', par: [58, 72, 98],
+    blurb: 'Гнилые мостки рушатся под колёсами, а через провалы ходят вагонетки.', par: [46, 58, 80],
   });
   b.flat(10).bridge(6, 2, true).flat(8).to(10, 2).flat(4).bridge(8, 2, true, -1.5).star(-8, 2.4).flat(8).cp().flat(7)
     .ferry(13, 0).flat(8).surface('sand').to(10, -1.5).flat(6).surface('rock').to(8, 1).flat(6)
@@ -112,7 +112,7 @@ function ropeBridge(): Level {
 function arches(): Level {
   const b = new LevelBuilder({
     id: 'canyon-3', name: 'Арки', biome: 'canyon', tier: 3, surface: 'rock',
-    blurb: 'Низкие каменные своды: прыгнешь слишком высоко — ударишься головой.', par: [56, 70, 96],
+    blurb: 'Низкие каменные своды: прыгнешь слишком высоко — ударишься головой.', par: [32, 40, 58],
   });
   b.flat(10).roof(4, 10, 2.5, 1.6).flat(18).to(10, 2.5).roof(-2, 9, 3.2, 1.4).flat(6)
     .ramp(6, 0.9).gap(5, -0.6).roof(-9, 12, 3.6, 1.5).flat(8).star(-5.5, 1.5).cp().flat(6)
@@ -128,7 +128,7 @@ function arches(): Level {
 function glacier(): Level {
   const b = new LevelBuilder({
     id: 'glacier-1', name: 'Ледник', biome: 'glacier', tier: 2, surface: 'snow',
-    blurb: 'На голом льду шина почти не держит: плавный газ и ранний тормоз.', par: [44, 56, 78],
+    blurb: 'На голом льду шина почти не держит: плавный газ и ранний тормоз.', par: [25, 31, 44],
   });
   b.flat(10).hill(10, 1.2).flat(5).surface('ice').flat(14).to(10, -1.6).flat(6).surface('snow').flat(5)
     .to(10, 2.6).star(-5, 2.6).flat(5).cp().flat(6)
@@ -143,7 +143,7 @@ function glacier(): Level {
 function icefall(): Level {
   const b = new LevelBuilder({
     id: 'glacier-2', name: 'Ледопад', biome: 'glacier', tier: 3, surface: 'snow',
-    blurb: 'Ледяные ступени, трещины и скользкие подъёмы. Ошибок лёд не прощает.', par: [56, 70, 98],
+    blurb: 'Ледяные ступени, трещины и скользкие подъёмы. Ошибок лёд не прощает.', par: [40, 50, 70],
   });
   b.flat(10).surface('ice').stairs(4, 3.4, -0.6).flat(5).surface('snow').to(8, 1.5).flat(4)
     .ramp(4, 0.5).gap(3.4, -0.7).flat(5).surface('ice').ramp(3, 0.35).gap(3.6, -0.7).flat(6).ramp(3, 0.35).gap(3.8, -0.7).surface('snow').flat(8).star(-10.5, 2.4).cp().flat(6)
@@ -159,7 +159,7 @@ function icefall(): Level {
 function caldera(): Level {
   const b = new LevelBuilder({
     id: 'volcano-1', name: 'Кальдера', biome: 'volcano', tier: 3, surface: 'rock',
-    blurb: 'Над лавой — только хлипкие плиты и подъёмники. Не задерживайтесь.', par: [62, 78, 108],
+    blurb: 'Над лавой — только хлипкие плиты и подъёмники. Не задерживайтесь.', par: [44, 56, 80],
   });
   b.flat(10).rough(12, 0.2, 1).flat(4).bridge(7, 2, true).flat(5).ramp(7, 1.5).gap(6, 0.6).star(-3, 2.8).flat(8).cp().flat(7)
     .elevator(4.2).flat(6).line(8, -3.2).ramp(8, 2).gap(9, -1).flat(4).bridge(4, 2, true).flat(3.5).bridge(4, 2, true)
@@ -173,7 +173,7 @@ function caldera(): Level {
 function crater(): Level {
   const b = new LevelBuilder({
     id: 'volcano-2', name: 'Жерло', biome: 'volcano', tier: 3, surface: 'rock',
-    blurb: 'Финальный экзамен: всё, чему научили предыдущие трассы, без передышки.', par: [84, 104, 140],
+    blurb: 'Финальный экзамен: всё, чему научили предыдущие трассы, без передышки.', par: [64, 80, 115],
   });
   b.flat(10).ramp(7, 1.6).gap(7, 0).flat(5).rough(10, 0.24, 1.5).flat(3).boulder(0.5, 2.4, 0.8).flat(7)
     .seesaw(8, 1.25).flat(1.5).seesaw(8, 1.25).flat(8).star(-18, 3).cp().flat(7)

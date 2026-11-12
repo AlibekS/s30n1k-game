@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "single": "npm run build && node tools/inline.mjs",
     "check": "tsc --noEmit",
     "test": "tsx tools/verify.ts"
   },
