@@ -17,7 +17,7 @@ interface Save {
   ghost: boolean;
 }
 
-const KEY = 'kryazh.save.v1';
+const KEY = 'ride.save.v1';
 let data: Save = { v: 1, levels: {}, muted: false, ghost: true };
 
 try {

@@ -1,4 +1,4 @@
-// Склеивает сборку Vite в один самодостаточный HTML-файл (dist/kryazh.html).
+// Склеивает сборку Vite в один самодостаточный HTML-файл (dist/ride.html).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -12,5 +12,5 @@ function findJs() {
   return m[1];
 }
 html = html.replace('</body>', () => `<script type="module">${js.replace(/<\/script/g, '<\\/script')}</script>\n</body>`);
-writeFileSync(join(dist, 'kryazh.html'), html);
-console.log('dist/kryazh.html', (html.length / 1024).toFixed(0) + ' КБ');
+writeFileSync(join(dist, 'ride.html'), html);
+console.log('dist/ride.html', (html.length / 1024).toFixed(0) + ' КБ');

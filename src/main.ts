@@ -276,6 +276,6 @@ window.addEventListener('keydown', (e) => {
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // отладочный доступ для автотестов
-(window as unknown as { __kryazh: unknown }).__kryazh = { play, levels: LEVELS, get game() { return game; } };
+(window as unknown as { __ride: unknown }).__ride = { play, levels: LEVELS, get game() { return game; } };
 
 toMenu();
