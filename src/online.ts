@@ -35,6 +35,17 @@ export const online = {
     }
   },
 
+  /** Меняет код/пароль профиля. 'missing' — на сервере ещё нет функции смены пароля. */
+  async changeSecret(nick: string, oldSecret: string, newSecret: string): Promise<'ok' | 'denied' | 'missing' | 'offline'> {
+    if (!onlineEnabled) return 'offline';
+    try {
+      const r = await call<string>('rpc/ride_set_secret', { p_nick: nick, p_old: oldSecret, p_new: newSecret });
+      return r === 'ok' ? 'ok' : 'denied';
+    } catch (e) {
+      return String(e).includes('404') ? 'missing' : 'offline';
+    }
+  },
+
   async submit(nick: string, secret: string, level: string, time: number, stars: number): Promise<boolean> {
     if (!onlineEnabled) return false;
     try {

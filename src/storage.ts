@@ -19,8 +19,10 @@ export interface LevelRecord {
 
 export interface Profile {
   nick: string;
-  /** Случайный код профиля: подтверждает владение ником на сервере. */
+  /** Ключ, выведенный из пароля (у старых профилей — случайный код): подтверждает владение ником. */
   secret: string;
+  /** У профиля есть пароль, заданный игроком. */
+  pw?: boolean;
   /** Ник подтверждён сервером. */
   synced: boolean;
   levels: Record<string, LevelRecord>;
@@ -62,10 +64,20 @@ function flush(): void {
   try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
-function randomSecret(): string {
-  const a = new Uint8Array(12);
-  crypto.getRandomValues(a);
-  return [...a].map((b) => b.toString(16).padStart(2, '0')).join('');
+export const PASSWORD_MIN = 6;
+
+/** Пароль не покидает устройство: на сервер уходит только ключ, выведенный из него (PBKDF2, соль — ник). */
+async function deriveSecret(nick: string, password: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('ride:' + nickKey(nick)), iterations: 150000 }, key, 256);
+  return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function passwordError(password: string): string | null {
+  if (password.length < PASSWORD_MIN) return `Пароль — минимум ${PASSWORD_MIN} символов`;
+  if (password.length > 64) return 'Пароль слишком длинный';
+  return null;
 }
 
 const active = (): Profile | null => (data.current ? data.profiles[data.current] ?? null : null);
@@ -109,13 +121,14 @@ export const store = {
    * Создаёт профиль. Возвращает текст ошибки или null.
    * Ник проверяется по правилам, на уникальность — на устройстве и на сервере.
    */
-  async create(raw: string): Promise<string | null> {
+  async create(raw: string, password: string): Promise<string | null> {
     const nick = raw.trim();
-    const err = nickError(nick);
+    const err = nickError(nick) ?? passwordError(password);
     if (err) return err;
     const key = nickKey(nick);
     if (data.profiles[key]) return 'Такой ник уже есть на этом устройстве';
-    const secret = randomSecret();
+    let secret: string;
+    try { secret = await deriveSecret(nick, password); } catch { return 'Браузер не поддерживает защиту пароля'; }
     let synced = false;
     if (onlineEnabled) {
       const r = await online.register(nick, secret);
@@ -125,7 +138,7 @@ export const store = {
       synced = true;
     }
     // прогресс гостя переезжает в новый профиль
-    data.profiles[key] = { nick, secret, synced, levels: guest };
+    data.profiles[key] = { nick, secret, synced, pw: true, levels: guest };
     guest = {};
     try { localStorage.removeItem(OLD_KEY); } catch { /* ignore */ }
     data.current = key;
@@ -134,14 +147,23 @@ export const store = {
     return null;
   },
 
-  /** Вход в существующий профиль с другого устройства по нику и коду. */
-  async login(rawNick: string, rawSecret: string, pars: Record<string, [number, number, number]>): Promise<string | null> {
-    const nick = rawNick.trim(), secret = rawSecret.trim();
-    if (!onlineEnabled) return 'Вход по коду работает только с онлайн-сервером';
-    if (nickError(nick) || secret.length < 16) return 'Проверьте ник и код';
-    const r = await online.register(nick, secret);
+  /** Вход в существующий профиль с другого устройства по нику и паролю. */
+  async login(rawNick: string, password: string, pars: Record<string, [number, number, number]>): Promise<string | null> {
+    const nick = rawNick.trim();
+    if (!onlineEnabled) return 'Вход работает только с онлайн-сервером';
+    if (nickError(nick) || !password) return 'Введите ник и пароль';
+    let secret: string;
+    try { secret = await deriveSecret(nick, password); } catch { return 'Браузер не поддерживает защиту пароля'; }
+    let pw = true;
+    let r = await online.register(nick, secret);
+    // профили, созданные до появления паролей, входят по старому коду
+    if (r === 'taken' && /^[0-9a-f]{24}$/.test(password.trim())) {
+      secret = password.trim();
+      pw = false;
+      r = await online.register(nick, secret);
+    }
     if (r === 'offline') return 'Нет связи с сервером';
-    if (r !== 'ok') return 'Ник или код не подходят';
+    if (r !== 'ok') return 'Неверный ник или пароль';
     const rows = (await online.scores()) ?? [];
     const key = nickKey(nick);
     const lv: Record<string, LevelRecord> = data.profiles[key]?.levels ?? {};
@@ -152,8 +174,28 @@ export const store = {
       const t = row.time_ms / 1000, old = lv[row.level];
       if (!old || t < old.time) lv[row.level] = { time: t, medal: pars[row.level] ? medalFor(t, pars[row.level]) : null, stars: Math.max(row.stars, old?.stars ?? 0), clean: !!old?.clean };
     }
-    data.profiles[key] = { nick: name, secret, synced: true, levels: lv };
+    data.profiles[key] = { nick: name, secret, synced: true, pw, levels: lv };
     data.current = key;
+    flush();
+    return null;
+  },
+
+  /** Задаёт или меняет пароль активного профиля. */
+  async setPassword(password: string): Promise<string | null> {
+    const p = active();
+    if (!p) return 'Сначала войдите в профиль';
+    const err = passwordError(password);
+    if (err) return err;
+    let secret: string;
+    try { secret = await deriveSecret(p.nick, password); } catch { return 'Браузер не поддерживает защиту пароля'; }
+    if (onlineEnabled && p.synced) {
+      const r = await online.changeSecret(p.nick, p.secret, secret);
+      if (r === 'missing') return 'На сервере ещё не включена смена пароля';
+      if (r === 'offline') return 'Нет связи с сервером';
+      if (r !== 'ok') return 'Сервер отклонил смену пароля';
+    }
+    p.secret = secret;
+    p.pw = true;
     flush();
     return null;
   },

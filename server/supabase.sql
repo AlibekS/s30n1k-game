@@ -5,7 +5,7 @@
 create table if not exists ride_players (
   nick text primary key,
   nick_key text not null unique,            -- ник в нижнем регистре: уникальность без учёта регистра
-  secret_hash text not null,                -- md5 от случайного кода профиля
+  secret_hash text not null,                -- md5 от ключа, который клиент выводит из пароля (PBKDF2)
   created_at timestamptz not null default now()
 );
 
@@ -65,6 +65,16 @@ begin
   return 'ok';
 end $$;
 
+-- Смена пароля: нужен действующий ключ профиля.
+create or replace function ride_set_secret(p_nick text, p_old text, p_new text) returns text
+language plpgsql security definer set search_path = public as $$
+begin
+  if length(coalesce(p_new, '')) < 16 then return 'bad'; end if;
+  update ride_players set secret_hash = md5(p_new) where nick_key = lower(p_nick) and secret_hash = md5(p_old);
+  return case when found then 'ok' else 'denied' end;
+end $$;
+
+grant execute on function ride_set_secret(text, text, text) to anon;
 grant execute on function ride_register(text, text) to anon;
 grant execute on function ride_submit(text, text, text, integer, integer) to anon;
 grant select on ride_scores to anon;

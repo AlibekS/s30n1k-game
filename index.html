@@ -94,10 +94,13 @@
     <h2>Профиль</h2>
     <p id="pf-status" class="note"></p>
     <div id="pf-current" class="pf-block" hidden>
-      <div id="pf-code-row" class="code-row" hidden>
-        <span>Код для входа на другом устройстве (нажмите, чтобы скопировать)</span>
-        <code id="pf-code"></code>
-      </div>
+      <form id="pf-pass" class="pf-form" autocomplete="off">
+        <label id="pf-pass-label" for="pf-pass-new">Сменить пароль</label>
+        <div class="row">
+          <input id="pf-pass-new" type="password" maxlength="64" placeholder="Новый пароль" autocomplete="new-password" />
+          <button id="pf-pass-go" type="submit">Сохранить</button>
+        </div>
+      </form>
       <button id="pf-guest">Выйти и играть гостем</button>
     </div>
     <div id="pf-list" class="pf-list"></div>
@@ -105,6 +108,7 @@
       <label for="pf-nick">Новый профиль</label>
       <div class="row">
         <input id="pf-nick" type="text" maxlength="16" placeholder="Ник: 3–16 символов" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <input id="pf-new-pass" type="password" maxlength="64" placeholder="Пароль: от 6 символов" autocomplete="new-password" />
         <button id="pf-create" class="primary" type="submit">Создать</button>
       </div>
     </form>
@@ -112,13 +116,13 @@
       <label for="pf-login-nick">Войти в существующий профиль</label>
       <div class="row">
         <input id="pf-login-nick" type="text" maxlength="16" placeholder="Ник" autocapitalize="off" spellcheck="false" />
-        <input id="pf-login-code" type="text" maxlength="40" placeholder="Код" autocapitalize="off" spellcheck="false" />
+        <input id="pf-login-code" type="password" maxlength="64" placeholder="Пароль" autocomplete="current-password" />
         <button id="pf-login-go" type="submit">Войти</button>
       </div>
-      <span class="hint">Код показан в окне «Профиль» на том устройстве, где профиль создан.</span>
+      <span class="hint">Войдите с тем же ником и паролем на любом устройстве — прогресс подтянется с сервера.</span>
     </form>
     <p id="pf-error" class="note bad" role="alert"></p>
-    <p class="note">Ник уникален, 3–16 символов: буквы, цифры, «_» и «-». Оскорбления и брань запрещены. Гость играет без сохранения прогресса.</p>
+    <p class="note">Ник уникален, 3–16 символов: буквы, цифры, «_» и «-». Оскорбления и брань запрещены. Пароль восстановить нельзя — запомните его. Гость играет без сохранения прогресса.</p>
     <button id="pf-close">Закрыть</button>
   </div>
 </section>

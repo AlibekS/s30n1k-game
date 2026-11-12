@@ -163,8 +163,7 @@ function buildProfile(error = ''): void {
     ? `Вы играете как <b>${esc(pr.nick)}</b>. Прогресс сохраняется${onlineEnabled ? (pr.synced ? ' и попадает в общую таблицу лидеров' : ', но ник ещё не подтверждён сервером') : ' на этом устройстве'}.`
     : 'Вы играете как гость: прогресс пропадёт, когда вы закроете вкладку. Создайте профиль, чтобы сохранять его.';
   $('pf-current').hidden = !pr;
-  $('pf-code-row').hidden = !(pr && onlineEnabled && pr.synced);
-  $('pf-code').textContent = pr?.secret ?? '';
+  $('pf-pass-label').textContent = pr && !pr.pw ? 'Задайте пароль, чтобы входить с других устройств' : 'Сменить пароль';
   $('pf-login').hidden = !onlineEnabled;
   $('pf-error').textContent = error;
   const list = $('pf-list');
@@ -193,9 +192,10 @@ $<HTMLFormElement>('pf-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const inp = $<HTMLInputElement>('pf-nick'), btn = $<HTMLButtonElement>('pf-create');
   btn.disabled = true;
-  void store.create(inp.value.slice(0, NICK_MAX)).then((err) => {
+  const pass = $<HTMLInputElement>('pf-new-pass');
+  void store.create(inp.value.slice(0, NICK_MAX), pass.value).then((err) => {
     btn.disabled = false;
-    if (!err) inp.value = '';
+    if (!err) { inp.value = ''; pass.value = ''; }
     buildProfile(err ?? '');
     buildMenu();
   });
@@ -204,14 +204,19 @@ $<HTMLFormElement>('pf-login').addEventListener('submit', (e) => {
   e.preventDefault();
   const pars: Record<string, [number, number, number]> = {};
   for (const l of LEVELS) pars[l.id] = l.par;
-  void store.login($<HTMLInputElement>('pf-login-nick').value, $<HTMLInputElement>('pf-login-code').value, pars).then((err) => { buildProfile(err ?? ''); buildMenu(); });
+  const code = $<HTMLInputElement>('pf-login-code');
+  void store.login($<HTMLInputElement>('pf-login-nick').value, code.value, pars).then((err) => { if (!err) code.value = ''; buildProfile(err ?? ''); buildMenu(); });
 });
-$('pf-code-row').addEventListener('click', () => {
-  const code = $('pf-code').textContent ?? '';
-  navigator.clipboard?.writeText(code).then(() => { $('pf-error').textContent = 'Код скопирован'; }).catch(() => { /* останется выделить вручную */ });
+$<HTMLFormElement>('pf-pass').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const inp = $<HTMLInputElement>('pf-pass-new');
+  void store.setPassword(inp.value).then((err) => {
+    if (!err) inp.value = '';
+    buildProfile(err ?? 'Пароль сохранён');
+  });
 });
 // ввод ника не должен управлять мотоциклом
-for (const id of ['pf-nick', 'pf-login-nick', 'pf-login-code']) $(id).addEventListener('keydown', (e) => e.stopPropagation());
+for (const id of ['pf-nick', 'pf-new-pass', 'pf-pass-new', 'pf-login-nick', 'pf-login-code']) $(id).addEventListener('keydown', (e) => e.stopPropagation());
 
 // ---------- таблица лидеров ----------
 let boardRows: ScoreRow[] = [];
