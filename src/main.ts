@@ -206,6 +206,10 @@ $<HTMLFormElement>('pf-login').addEventListener('submit', (e) => {
   for (const l of LEVELS) pars[l.id] = l.par;
   void store.login($<HTMLInputElement>('pf-login-nick').value, $<HTMLInputElement>('pf-login-code').value, pars).then((err) => { buildProfile(err ?? ''); buildMenu(); });
 });
+$('pf-code-row').addEventListener('click', () => {
+  const code = $('pf-code').textContent ?? '';
+  navigator.clipboard?.writeText(code).then(() => { $('pf-error').textContent = 'Код скопирован'; }).catch(() => { /* останется выделить вручную */ });
+});
 // ввод ника не должен управлять мотоциклом
 for (const id of ['pf-nick', 'pf-login-nick', 'pf-login-code']) $(id).addEventListener('keydown', (e) => e.stopPropagation());
 
