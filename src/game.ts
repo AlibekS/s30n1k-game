@@ -279,7 +279,8 @@ export class Game {
       ty = sim.ragdoll.y[2] - 0.6;
       zoom = base * 1.08;
     } else {
-      tx = b.c.x + 2.4 + clamp(b.c.vx * 0.42, -5, 7.5);
+      const lead = Math.min(1, this.scene.w / this.scene.h);
+      tx = b.c.x + (2.4 + clamp(b.c.vx * 0.42, -5, 7.5)) * (0.45 + 0.55 * lead);
       ty = b.c.y - 1.1 + clamp(b.c.vy * 0.16, -1.2, 2.6);
     }
     v.x += (tx - v.x) * (1 - Math.exp(-dt * 3.6));

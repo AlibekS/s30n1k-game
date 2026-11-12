@@ -115,7 +115,8 @@ export class Scene {
 
   /** Масштаб, при котором в кадр помещается привычный участок трассы. */
   baseScale(): number {
-    return Math.max(24, Math.min(this.w / 21, this.h / 10.5));
+    // на вертикальном экране ширина — узкое место: показываем ~13 м трассы
+    return this.h > this.w ? this.w / 13 : Math.max(24, Math.min(this.w / 21, this.h / 10.5));
   }
 
   render(view: View, sim: Sim | null, particles: Particles | null, time: number, ghost: GhostPose | null): void {
