@@ -7,6 +7,8 @@ import type { Level } from './levels/types';
 import { BIOMES } from './render/biomes';
 import { Scene } from './render/scene';
 import { World } from './sim/world';
+import { NICK_MAX } from './nick';
+import { online, onlineEnabled, type ScoreRow } from './online';
 import { medalFor, store, type Medal } from './storage';
 import { formatTime } from './util';
 
@@ -147,7 +149,117 @@ function buildMenu(): void {
     grid.append(card);
   });
   $('summary').innerHTML = `Пройдено <b>${done}/${LEVELS.length}</b> · медалей <b>${medals}</b> · звёзд <b>${starSum}/${starMax}</b>`;
+  const pr = store.profile;
+  $('btn-profile').innerHTML = pr ? `👤 <b>${esc(pr.nick)}</b>` : '👤 Гость · создать профиль';
   syncToggles();
+}
+
+const esc = (t: string): string => t.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+// ---------- профиль ----------
+function buildProfile(error = ''): void {
+  const pr = store.profile;
+  $('pf-status').innerHTML = pr
+    ? `Вы играете как <b>${esc(pr.nick)}</b>. Прогресс сохраняется${onlineEnabled ? (pr.synced ? ' и попадает в общую таблицу лидеров' : ', но ник ещё не подтверждён сервером') : ' на этом устройстве'}.`
+    : 'Вы играете как гость: прогресс пропадёт, когда вы закроете вкладку. Создайте профиль, чтобы сохранять его.';
+  $('pf-current').hidden = !pr;
+  $('pf-code-row').hidden = !(pr && onlineEnabled && pr.synced);
+  $('pf-code').textContent = pr?.secret ?? '';
+  $('pf-login').hidden = !onlineEnabled;
+  $('pf-error').textContent = error;
+  const list = $('pf-list');
+  list.innerHTML = '';
+  for (const p of store.profiles) {
+    if (p === pr) continue;
+    const row = document.createElement('div');
+    row.className = 'pf-item';
+    const use = document.createElement('button');
+    use.textContent = `Играть как ${p.nick}`;
+    use.addEventListener('click', () => { store.use(p.nick); buildProfile(); buildMenu(); });
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.textContent = '✕';
+    del.title = 'Удалить профиль с этого устройства';
+    del.addEventListener('click', () => {
+      if (del.dataset.sure) { store.remove(p.nick); buildProfile(); buildMenu(); }
+      else { del.dataset.sure = '1'; del.textContent = 'Точно?'; del.style.flexBasis = '84px'; }
+    });
+    row.append(use, del);
+    list.append(row);
+  }
+}
+
+$<HTMLFormElement>('pf-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const inp = $<HTMLInputElement>('pf-nick'), btn = $<HTMLButtonElement>('pf-create');
+  btn.disabled = true;
+  void store.create(inp.value.slice(0, NICK_MAX)).then((err) => {
+    btn.disabled = false;
+    if (!err) inp.value = '';
+    buildProfile(err ?? '');
+    buildMenu();
+  });
+});
+$<HTMLFormElement>('pf-login').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const pars: Record<string, [number, number, number]> = {};
+  for (const l of LEVELS) pars[l.id] = l.par;
+  void store.login($<HTMLInputElement>('pf-login-nick').value, $<HTMLInputElement>('pf-login-code').value, pars).then((err) => { buildProfile(err ?? ''); buildMenu(); });
+});
+// ввод ника не должен управлять мотоциклом
+for (const id of ['pf-nick', 'pf-login-nick', 'pf-login-code']) $(id).addEventListener('keydown', (e) => e.stopPropagation());
+
+// ---------- таблица лидеров ----------
+let boardRows: ScoreRow[] = [];
+
+function renderBoard(): void {
+  const sel = $<HTMLSelectElement>('b-level').value;
+  const me = store.profile?.nick.toLowerCase();
+  const table = $('b-table');
+  let html = '';
+  if (sel === 'all') {
+    const agg = new Map<string, { nick: string; pts: number; done: number; stars: number }>();
+    for (const r of boardRows) {
+      const level = LEVELS.find((l) => l.id === r.level);
+      if (!level) continue;
+      const a = agg.get(r.nick) ?? { nick: r.nick, pts: 0, done: 0, stars: 0 };
+      const medal = medalFor(r.time_ms / 1000, level.par);
+      a.pts += (medal === 'gold' ? 300 : medal === 'silver' ? 200 : medal === 'bronze' ? 100 : 50) + r.stars * 20;
+      a.done++;
+      a.stars += r.stars;
+      agg.set(r.nick, a);
+    }
+    const list = [...agg.values()].sort((a, b) => b.pts - a.pts || b.stars - a.stars).slice(0, 100);
+    html = '<tr><th>#</th><th>Игрок</th><th class="num">Очки</th><th class="num">Трасс</th><th class="num">★</th></tr>' +
+      list.map((a, i) => `<tr class="${a.nick.toLowerCase() === me ? 'me' : ''}"><td>${i + 1}</td><td>${esc(a.nick)}</td><td class="num">${a.pts}</td><td class="num">${a.done}/${LEVELS.length}</td><td class="num">${a.stars}</td></tr>`).join('');
+    if (!list.length) html += '<tr><td colspan="5" class="empty">Пока никто не финишировал. Будьте первым!</td></tr>';
+  } else {
+    const list = boardRows.filter((r) => r.level === sel).sort((a, b) => a.time_ms - b.time_ms).slice(0, 100);
+    html = '<tr><th>#</th><th>Игрок</th><th class="num">Время</th><th class="num">★</th></tr>' +
+      list.map((r, i) => `<tr class="${r.nick.toLowerCase() === me ? 'me' : ''}"><td>${i + 1}</td><td>${esc(r.nick)}</td><td class="num">${formatTime(r.time_ms / 1000)}</td><td class="num">${r.stars}</td></tr>`).join('');
+    if (!list.length) html += '<tr><td colspan="4" class="empty">На этой трассе ещё нет результатов.</td></tr>';
+  }
+  table.innerHTML = html;
+}
+
+function openBoard(): void {
+  const sel = $<HTMLSelectElement>('b-level');
+  if (!sel.options.length) {
+    sel.innerHTML = '<option value="all">Общий зачёт</option>' + LEVELS.map((l, i) => `<option value="${l.id}">${String(i + 1).padStart(2, '0')} · ${esc(l.name)}</option>`).join('');
+    sel.addEventListener('change', renderBoard);
+  }
+  boardRows = store.localScores();
+  const note = $('b-note');
+  note.textContent = onlineEnabled ? 'Загрузка…' : 'Онлайн-сервер не подключён: показаны профили этого устройства.';
+  renderBoard();
+  show('board');
+  if (onlineEnabled) {
+    void store.pushAll().then(() => online.scores()).then((rows) => {
+      if (rows) { boardRows = rows; note.textContent = store.profile ? '' : 'Гости в таблицу не попадают — создайте профиль.'; }
+      else note.textContent = 'Нет связи с сервером: показаны профили этого устройства.';
+      renderBoard();
+    });
+  }
 }
 
 function syncToggles(): void {
@@ -157,8 +269,9 @@ function syncToggles(): void {
   $('btn-ghost').textContent = `Призрак: ${store.ghost ? 'вкл' : 'выкл'}`;
 }
 
-function show(id: 'menu' | 'pause' | 'result' | 'help' | null): void {
-  for (const s of ['menu', 'pause', 'result', 'help']) $(s).hidden = s !== id;
+type ScreenId = 'menu' | 'pause' | 'result' | 'help' | 'profile' | 'board';
+function show(id: ScreenId | null): void {
+  for (const s of ['menu', 'pause', 'result', 'help', 'profile', 'board']) $(s).hidden = s !== id;
 }
 
 function toMenu(): void {
@@ -245,6 +358,7 @@ function finish(level: Level, r: { time: number; stars: number; crashes: number;
     <div><b>${r.crashes}</b>падений</div>
     <div><b>${r.flips}</b>сальто</div>`;
   $('r-par').innerHTML = `<span class="g">${formatTime(level.par[0])}</span><span class="s">${formatTime(level.par[1])}</span><span class="b">${formatTime(level.par[2])}</span>`;
+  if (!store.profile) note.textContent += ' · гость: прогресс не сохраняется';
   const next = current + 1;
   $('r-next').hidden = next >= LEVELS.length;
   show('result');
@@ -262,6 +376,11 @@ on('r-next', () => play(Math.min(LEVELS.length - 1, current + 1)));
 on('r-retry', () => play(current));
 on('r-menu', toMenu);
 on('btn-help', () => show('help'));
+on('btn-profile', () => { buildProfile(); show('profile'); });
+on('pf-close', () => { buildMenu(); show('menu'); });
+on('pf-guest', () => { store.use(null); buildProfile(); buildMenu(); });
+on('btn-board', openBoard);
+on('b-close', () => show('menu'));
 on('h-close', () => show('menu'));
 const toggleSound = (): void => { store.muted = !store.muted; audio.setMuted(store.muted); syncToggles(); };
 on('btn-sound', toggleSound);

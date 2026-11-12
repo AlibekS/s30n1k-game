@@ -39,7 +39,7 @@
   </div>
   <div class="tgroup right">
     <button class="tbtn" data-act="back">◀</button>
-    <button class="tbtn small" data-act="hop">▲</button>
+    <button class="tbtn small" data-act="hop">ПРЫЖОК</button>
     <button class="tbtn" data-act="fwd">▶</button>
   </div>
 </div>
@@ -49,6 +49,10 @@
     <h1>RIDE</h1>
     <p>мототриал с честной физикой</p>
   </header>
+  <div class="top-row">
+    <button id="btn-profile" class="chip"></button>
+    <button id="btn-board" class="chip">🏆 Таблица лидеров</button>
+  </div>
   <div id="summary" class="summary"></div>
   <div id="grid" class="grid"></div>
   <footer class="menu-foot">
@@ -85,6 +89,49 @@
   </div>
 </section>
 
+<section id="profile" class="screen dim" hidden>
+  <div class="panel wide">
+    <h2>Профиль</h2>
+    <p id="pf-status" class="note"></p>
+    <div id="pf-current" class="pf-block" hidden>
+      <div id="pf-code-row" class="code-row" hidden>
+        <span>Код для входа на другом устройстве</span>
+        <code id="pf-code"></code>
+      </div>
+      <button id="pf-guest">Выйти и играть гостем</button>
+    </div>
+    <div id="pf-list" class="pf-list"></div>
+    <form id="pf-form" class="pf-form" autocomplete="off">
+      <label for="pf-nick">Новый профиль</label>
+      <div class="row">
+        <input id="pf-nick" type="text" maxlength="16" placeholder="Ник: 3–16 символов" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <button id="pf-create" class="primary" type="submit">Создать</button>
+      </div>
+    </form>
+    <form id="pf-login" class="pf-form" autocomplete="off" hidden>
+      <label for="pf-login-nick">Войти в существующий профиль</label>
+      <div class="row">
+        <input id="pf-login-nick" type="text" maxlength="16" placeholder="Ник" autocapitalize="off" spellcheck="false" />
+        <input id="pf-login-code" type="text" maxlength="40" placeholder="Код" autocapitalize="off" spellcheck="false" />
+        <button id="pf-login-go" type="submit">Войти</button>
+      </div>
+    </form>
+    <p id="pf-error" class="note bad" role="alert"></p>
+    <p class="note">Ник уникален, 3–16 символов: буквы, цифры, «_» и «-». Оскорбления и брань запрещены. Гость играет без сохранения прогресса.</p>
+    <button id="pf-close">Закрыть</button>
+  </div>
+</section>
+
+<section id="board" class="screen dim" hidden>
+  <div class="panel wide board">
+    <h2>Таблица лидеров</h2>
+    <select id="b-level" aria-label="Трасса"></select>
+    <p id="b-note" class="note"></p>
+    <div class="b-scroll"><table id="b-table" class="b-table"></table></div>
+    <button id="b-close" class="primary">Закрыть</button>
+  </div>
+</section>
+
 <section id="help" class="screen dim" hidden>
   <div class="panel wide">
     <h2>Управление</h2>
@@ -93,7 +140,7 @@
       <tr><td><kbd>↓</kbd> <kbd>S</kbd></td><td>тормоз. В воздухе опускает нос</td></tr>
       <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>перенос веса назад / вперёд, вращение в полёте</td></tr>
       <tr><td><kbd>↓</kbd>+<kbd>←</kbd></td><td>задний ход (на месте)</td></tr>
-      <tr><td><kbd>Пробел</kbd></td><td>зажать — присесть, отпустить — выпрыгнуть</td></tr>
+      <tr><td><kbd>Пробел</kbd></td><td>зажать — присесть, отпустить — выпрыгнуть (на телефоне — кнопка «Прыжок»)</td></tr>
       <tr><td><kbd>R</kbd></td><td>вернуться к чекпоинту</td></tr>
       <tr><td><kbd>T</kbd></td><td>начать трассу заново</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>пауза</td></tr>

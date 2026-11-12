@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "single": "npm run build && node tools/inline.mjs",
     "check": "tsc --noEmit",
-    "test": "tsx tools/verify.ts"
+    "test": "tsx tools/nick.test.ts && tsx tools/verify.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
